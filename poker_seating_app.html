@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Table Seating</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f4c3a, #1a5f4a);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .controls {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,107,53,0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4757, #c44569);
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255,71,87,0.4);
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .poker-table {
+            width: 500px;
+            height: 300px;
+            background: linear-gradient(145deg, #2d5a27, #4a7c59);
+            border-radius: 50%;
+            position: relative;
+            border: 8px solid #8b4513;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .seat {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .seat.empty {
+            background: linear-gradient(145deg, #666, #888);
+            color: #ccc;
+            border-color: #999;
+        }
+
+        .seat.occupied {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            color: white;
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255,107,53,0.5);
+        }
+
+        .seat:nth-child(1) { top: -40px; left: 50%; transform: translateX(-50%); }
+        .seat:nth-child(2) { top: -20px; right: 80px; }
+        .seat:nth-child(3) { top: 50px; right: 20px; }
+        .seat:nth-child(4) { bottom: 50px; right: 20px; }
+        .seat:nth-child(5) { bottom: -20px; right: 80px; }
+        .seat:nth-child(6) { bottom: -40px; left: 50%; transform: translateX(-50%); }
+        .seat:nth-child(7) { bottom: -20px; left: 80px; }
+        .seat:nth-child(8) { bottom: 50px; left: 20px; }
+        .seat:nth-child(9) { top: 50px; left: 20px; }
+        .seat:nth-child(10) { top: -20px; left: 80px; }
+
+        .waiting-list {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            height: fit-content;
+        }
+
+        .waiting-list h3 {
+            margin-bottom: 20px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .waiting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .waiting-number {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #ccc;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .poker-table {
+                width: 400px;
+                height: 240px;
+            }
+            
+            .seat {
+                width: 60px;
+                height: 60px;
+                font-size: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 Poker Table Seating</h1>
+        
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="Enter player name" maxlength="15">
+                <button class="btn-primary" onclick="addPlayer()">Add Player</button>
+                <button class="btn-secondary" onclick="newGame()">New Game</button>
+            </div>
+            
+            <div class="status">
+                <span id="tableStatus">Table Empty (0/10)</span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="table-container">
+                <div class="poker-table" id="pokerTable">
+                    <!-- Seats will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="waiting-list">
+                <h3>🕐 Waiting List</h3>
+                <div id="waitingListContainer">
+                    <div class="empty-state">No players waiting</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PokerSeating {
+            constructor() {
+                this.seats = new Array(10).fill(null);
+                this.waitingList = [];
+                this.init();
+            }
+
+            init() {
+                this.createSeats();
+                this.updateDisplay();
+                
+                // Allow Enter key to add player
+                document.getElementById('playerName').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addPlayer();
+                    }
+                });
+            }
+
+            createSeats() {
+                const table = document.getElementById('pokerTable');
+                table.innerHTML = '';
+                
+                for (let i = 0; i < 10; i++) {
+                    const seat = document.createElement('div');
+                    seat.className = 'seat empty';
+                    seat.id = `seat-${i}`;
+                    seat.textContent = `Seat ${i + 1}`;
+                    table.appendChild(seat);
+                }
+            }
+
+            addPlayer() {
+                const nameInput = document.getElementById('playerName');
+                const playerName = nameInput.value.trim();
+                
+                if (!playerName) {
+                    alert('Please enter a player name');
+                    return;
+                }
+
+                if (playerName.length > 15) {
+                    alert('Player name must be 15 characters or less');
+                    return;
+                }
+
+                // Check if player already exists
+                if (this.seats.includes(playerName) || this.waitingList.includes(playerName)) {
+                    alert('Player is already seated or in waiting list');
+                    return;
+                }
+
+                // Try to seat player at table
+                const availableSeats = this.seats.map((seat, index) => seat === null ? index : null)
+                    .filter(seat => seat !== null);
+
+                if (availableSeats.length > 0) {
+                    // Randomly select an available seat
+                    const randomSeatIndex = availableSeats[Math.floor(Math.random() * availableSeats.length)];
+                    this.seats[randomSeatIndex] = playerName;
+                    
+                    // Show seat assignment animation
+                    this.showSeatAssignment(playerName, randomSeatIndex + 1);
+                } else {
+                    // Add to waiting list
+                    this.waitingList.push(playerName);
+                }
+
+                nameInput.value = '';
+                this.updateDisplay();
+            }
+
+            showSeatAssignment(playerName, seatNumber) {
+                // Could add a brief animation or notification here
+                setTimeout(() => {
+                    alert(`${playerName} assigned to Seat ${seatNumber}!`);
+                }, 100);
+            }
+
+            removePlayer(seatIndex) {
+                const playerName = this.seats[seatIndex];
+                if (!playerName) return;
+
+                if (confirm(`Remove ${playerName} from Seat ${seatIndex + 1}?`)) {
+                    this.seats[seatIndex] = null;
+                    
+                    // If there's a waiting list, seat the next player
+                    if (this.waitingList.length > 0) {
+                        const nextPlayer = this.waitingList.shift();
+                        this.seats[seatIndex] = nextPlayer;
+                        this.showSeatAssignment(nextPlayer, seatIndex + 1);
+                    }
+                    
+                    this.updateDisplay();
+                }
+            }
+
+            removeFromWaitingList(index) {
+                const playerName = this.waitingList[index];
+                if (confirm(`Remove ${playerName} from waiting list?`)) {
+                    this.waitingList.splice(index, 1);
+                    this.updateDisplay();
+                }
+            }
+
+            newGame() {
+                if (confirm('Start a new game? This will clear all players.')) {
+                    this.seats = new Array(10).fill(null);
+                    this.waitingList = [];
+                    this.updateDisplay();
+                }
+            }
+
+            updateDisplay() {
+                this.updateSeats();
+                this.updateWaitingList();
+                this.updateStatus();
+            }
+
+            updateSeats() {
+                for (let i = 0; i < 10; i++) {
+                    const seatElement = document.getElementById(`seat-${i}`);
+                    const player = this.seats[i];
+                    
+                    if (player) {
+                        seatElement.className = 'seat occupied';
+                        seatElement.innerHTML = `
+                            <div style="text-align: center;">
+                                <div style="font-size: 10px; opacity: 0.8;">Seat ${i + 1}</div>
+                                <div style="font-size: 11px; font-weight: bold;">${player}</div>
+                                <button class="btn-danger" onclick="pokerGame.removePlayer(${i})" style="margin-top: 5px; padding: 2px 6px; font-size: 10px;">×</button>
+                            </div>
+                        `;
+                    } else {
+                        seatElement.className = 'seat empty';
+                        seatElement.innerHTML = `
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px;">Seat ${i + 1}</div>
+                                <div style="font-size: 10px; opacity: 0.7;">Empty</div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            updateWaitingList() {
+                const container = document.getElementById('waitingListContainer');
+                
+                if (this.waitingList.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No players waiting</div>';
+                    return;
+                }
+
+                container.innerHTML = this.waitingList.map((player, index) => `
+                    <div class="waiting-item">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="waiting-number">${index + 1}</div>
+                            <span>${player}</span>
+                        </div>
+                        <button class="btn-danger" onclick="pokerGame.removeFromWaitingList(${index})">×</button>
+                    </div>
+                `).join('');
+            }
+
+            updateStatus() {
+                const occupiedSeats = this.seats.filter(seat => seat !== null).length;
+                const statusElement = document.getElementById('tableStatus');
+                
+                if (occupiedSeats === 0) {
+                    statusElement.textContent = 'Table Empty (0/10)';
+                } else if (occupiedSeats === 10) {
+                    statusElement.textContent = `Table Full (${occupiedSeats}/10)`;
+                } else {
+                    statusElement.textContent = `${occupiedSeats} Players Seated (${occupiedSeats}/10)`;
+                }
+                
+                if (this.waitingList.length > 0) {
+                    statusElement.textContent += ` • ${this.waitingList.length} Waiting`;
+                }
+            }
+        }
+
+        // Initialize the game
+        const pokerGame = new PokerSeating();
+
+        // Global functions for onclick handlers
+        function addPlayer() {
+            pokerGame.addPlayer();
+        }
+
+        function newGame() {
+            pokerGame.newGame();
+        }
+    </script>
+</body>
+</html>
